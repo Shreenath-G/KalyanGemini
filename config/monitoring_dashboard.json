@@ -1,0 +1,941 @@
+{
+  "displayName": "Adaptive Ad Intelligence Platform - Complete Dashboard",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "width": 12,
+        "height": 1,
+        "widget": {
+          "title": "System Health Overview",
+          "text": {
+            "content": "Real-time monitoring of API performance, agent health, and system resources",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+      {
+        "yPos": 1,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "API Request Latency (p50, p95, p99)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/api_request_duration_seconds/histogram\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_50"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/api_request_duration_seconds/histogram\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/api_request_duration_seconds/histogram\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_99"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              }
+            ],
+            "yAxis": {
+              "label": "Latency (seconds)",
+              "scale": "LINEAR"
+            },
+            "chartOptions": {
+              "mode": "COLOR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 1,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "API Request Rate & Error Rate",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/api_requests_total/counter\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/api_requests_failed_total/counter\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y2"
+              }
+            ],
+            "yAxis": {
+              "label": "Requests/sec",
+              "scale": "LINEAR"
+            },
+            "y2Axis": {
+              "label": "Errors/sec",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 1,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Active Campaigns",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"prometheus.googleapis.com/campaigns_active/gauge\" resource.type=\"prometheus_target\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_MEAN"
+                }
+              }
+            },
+            "sparkChartView": {
+              "sparkChartType": "SPARK_LINE"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 5,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Agent Response Times by Agent (p95)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/agent_response_duration_seconds/histogram\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_DELTA",
+                    "crossSeriesReducer": "REDUCE_PERCENTILE_95",
+                    "groupByFields": ["metric.label.agent_name"]
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Response time (seconds)",
+              "scale": "LINEAR"
+            },
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "thresholds": [{
+              "value": 30.0,
+              "color": "RED",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 5,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Agent Failure Rate by Agent",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/agent_failures_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.agent_name"]
+                  }
+                }
+              },
+              "plotType": "STACKED_AREA",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Failures per second",
+              "scale": "LINEAR"
+            },
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "thresholds": [{
+              "value": 0.1,
+              "color": "YELLOW",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "yPos": 9,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Agent Fallback Usage",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/agent_fallbacks_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.agent_name"]
+                  }
+                }
+              },
+              "plotType": "STACKED_BAR",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Fallbacks per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 9,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Bid Execution Latency (p95)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/bid_execution_duration_milliseconds/histogram\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_DELTA",
+                    "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Latency (milliseconds)",
+              "scale": "LINEAR"
+            },
+            "thresholds": [{
+              "value": 100.0,
+              "color": "RED",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 9,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Bid Win Rate by Campaign",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/bid_win_rate/gauge\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "groupByFields": ["metric.label.campaign_id"]
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Win rate (%)",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 0.15,
+                "color": "RED",
+                "direction": "BELOW"
+              },
+              {
+                "value": 0.40,
+                "color": "YELLOW",
+                "direction": "ABOVE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "yPos": 13,
+        "width": 12,
+        "height": 1,
+        "widget": {
+          "title": "Campaign Performance Metrics",
+          "text": {
+            "content": "Real-time campaign performance including ROAS, spend, conversions, and optimization actions",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+      {
+        "yPos": 14,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Campaign ROAS by Campaign",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/campaign_roas/gauge\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "groupByFields": ["metric.label.campaign_id"]
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "ROAS",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 0.5,
+                "color": "RED",
+                "direction": "BELOW"
+              },
+              {
+                "value": 1.0,
+                "color": "YELLOW",
+                "direction": "BELOW"
+              },
+              {
+                "value": 3.0,
+                "color": "GREEN",
+                "direction": "ABOVE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 14,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Campaign Spend by Campaign",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/campaign_spend_dollars/gauge\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "groupByFields": ["metric.label.campaign_id"]
+                  }
+                }
+              },
+              "plotType": "STACKED_AREA",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Spend ($)",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 18,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Total Campaign Conversions",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/campaign_conversions_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Conversions per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 18,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Campaign Impressions & Clicks",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/campaign_impressions_total/counter\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/campaign_clicks_total/counter\" resource.type=\"prometheus_target\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y2"
+              }
+            ],
+            "yAxis": {
+              "label": "Impressions/sec",
+              "scale": "LINEAR"
+            },
+            "y2Axis": {
+              "label": "Clicks/sec",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 18,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Optimization Actions by Type",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"logging.googleapis.com/user/optimization_actions\" resource.type=\"cloud_run_revision\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.action_type"]
+                  }
+                }
+              },
+              "plotType": "STACKED_BAR",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Actions per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 22,
+        "width": 12,
+        "height": 1,
+        "widget": {
+          "title": "Cost Tracking & Budget Utilization",
+          "text": {
+            "content": "Infrastructure costs, budget utilization, and resource consumption tracking",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+      {
+        "yPos": 23,
+        "width": 3,
+        "height": 4,
+        "widget": {
+          "title": "Total Campaign Spend (24h)",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"prometheus.googleapis.com/campaign_spend_dollars/gauge\" resource.type=\"prometheus_target\"",
+                "aggregation": {
+                  "alignmentPeriod": "86400s",
+                  "perSeriesAligner": "ALIGN_SUM",
+                  "crossSeriesReducer": "REDUCE_SUM"
+                }
+              }
+            },
+            "sparkChartView": {
+              "sparkChartType": "SPARK_LINE"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 3,
+        "yPos": 23,
+        "width": 3,
+        "height": 4,
+        "widget": {
+          "title": "Budget Utilization Rate",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/budget_utilization_percent/gauge\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "groupByFields": ["metric.label.campaign_id"]
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Utilization (%)",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 90.0,
+                "color": "YELLOW",
+                "direction": "ABOVE"
+              },
+              {
+                "value": 105.0,
+                "color": "RED",
+                "direction": "ABOVE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 23,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Cloud Run Instance Count",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"run.googleapis.com/container/instance_count\" resource.type=\"cloud_run_revision\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Instances",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 27,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Cloud Run CPU Utilization",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"run.googleapis.com/container/cpu/utilizations\" resource.type=\"cloud_run_revision\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "CPU Utilization (%)",
+              "scale": "LINEAR"
+            },
+            "thresholds": [{
+              "value": 0.70,
+              "color": "YELLOW",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 27,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Cloud Run Memory Utilization",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"run.googleapis.com/container/memory/utilizations\" resource.type=\"cloud_run_revision\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Memory Utilization (%)",
+              "scale": "LINEAR"
+            },
+            "thresholds": [{
+              "value": 0.80,
+              "color": "YELLOW",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 27,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Firestore Operations Rate",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/firestore_operations_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.operation"]
+                  }
+                }
+              },
+              "plotType": "STACKED_AREA",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Operations per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 31,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Vertex AI API Calls by Agent",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/vertex_ai_calls_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.agent"]
+                  }
+                }
+              },
+              "plotType": "STACKED_BAR",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "API calls per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 31,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Estimated Infrastructure Cost (Monthly)",
+          "text": {
+            "content": "**Estimated Monthly Costs:**\n\n- Cloud Run: ~$200\n- Vertex AI: ~$500\n- Firestore: ~$100\n- Cloud Logging: ~$50\n- Other Services: ~$150\n\n**Total: ~$1,000/month** (based on 1000 campaigns)\n\nActual costs may vary based on usage. Monitor billing dashboard for real-time costs.",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+      {
+        "yPos": 35,
+        "width": 12,
+        "height": 1,
+        "widget": {
+          "title": "System Resources & External Services",
+          "text": {
+            "content": "External service health, error rates, and resource consumption",
+            "format": "MARKDOWN"
+          }
+        }
+      },
+      {
+        "yPos": 36,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Firestore Error Rate",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/firestore_errors_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.error_type"]
+                  }
+                }
+              },
+              "plotType": "STACKED_AREA",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Errors per second",
+              "scale": "LINEAR"
+            },
+            "thresholds": [{
+              "value": 0.05,
+              "color": "RED",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 36,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Vertex AI Error Rate",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"prometheus.googleapis.com/vertex_ai_errors_total/counter\" resource.type=\"prometheus_target\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "groupByFields": ["metric.label.error_type"]
+                  }
+                }
+              },
+              "plotType": "STACKED_AREA",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Errors per second",
+              "scale": "LINEAR"
+            },
+            "thresholds": [{
+              "value": 0.05,
+              "color": "RED",
+              "direction": "ABOVE"
+            }]
+          }
+        }
+      },
+      {
+        "yPos": 40,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Campaign Creation Success Rate",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"prometheus.googleapis.com/campaigns_created_total/counter\" resource.type=\"prometheus_target\" metric.label.status=\"active\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"logging.googleapis.com/user/campaign_creation_failures\" resource.type=\"cloud_run_revision\"",
+                    "aggregation": {
+                      "alignmentPeriod": "300s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y2"
+              }
+            ],
+            "yAxis": {
+              "label": "Success/sec",
+              "scale": "LINEAR"
+            },
+            "y2Axis": {
+              "label": "Failures/sec",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 40,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Agent Communication Errors",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"logging.googleapis.com/user/agent_communication_errors\" resource.type=\"cloud_run_revision\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Errors per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 40,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Cloud Run Request Count",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "targetAxis": "Y1"
+            }],
+            "yAxis": {
+              "label": "Requests per second",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

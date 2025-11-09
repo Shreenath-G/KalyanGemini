@@ -1,0 +1,341 @@
+# Cloud Monitoring Alert Policies Configuration
+# 
+# This file defines alert policies for the Adaptive Ad Intelligence Platform
+# Deploy these alerts using gcloud CLI or Cloud Console
+#
+# Requirements: 12.5
+
+# ============================================================================
+# API Performance Alerts
+# ============================================================================
+
+- name: "High API Latency"
+  display_name: "API Latency Above 5 Seconds"
+  documentation:
+    content: |
+      API request latency has exceeded 5 seconds for the p95 percentile.
+      This may indicate performance issues with agents or external services.
+      
+      Investigation steps:
+      1. Check agent response times in metrics
+      2. Review Cloud Logging for errors
+      3. Check Vertex AI and Firestore performance
+      4. Review recent deployments
+  conditions:
+    - display_name: "API p95 latency > 5s"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/api_request_duration_seconds/histogram"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_DELTA"
+            cross_series_reducer: "REDUCE_PERCENTILE_95"
+        comparison: "COMPARISON_GT"
+        threshold_value: 5.0
+        duration: "300s"  # 5 minutes
+  notification_channels: []  # Add notification channel IDs
+  alert_strategy:
+    auto_close: "1800s"  # 30 minutes
+
+- name: "High API Error Rate"
+  display_name: "API Error Rate Above 5%"
+  documentation:
+    content: |
+      API error rate has exceeded 5% of total requests.
+      This indicates widespread issues with the platform.
+      
+      Investigation steps:
+      1. Check error logs in Cloud Logging
+      2. Review agent failure rates
+      3. Check external service availability
+      4. Review recent code changes
+  conditions:
+    - display_name: "Error rate > 5%"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/api_requests_failed_total/counter"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_RATE"
+        comparison: "COMPARISON_GT"
+        threshold_value: 0.05  # 5% error rate
+        duration: "300s"
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+# ============================================================================
+# Agent Performance Alerts
+# ============================================================================
+
+- name: "High Agent Failure Rate"
+  display_name: "Agent Failure Rate Above 10%"
+  documentation:
+    content: |
+      One or more agents are failing at a rate above 10%.
+      This will trigger fallback strategies and may degrade campaign quality.
+      
+      Investigation steps:
+      1. Identify which agent is failing from metrics
+      2. Check agent-specific logs
+      3. Verify Vertex AI API availability
+      4. Check for quota limits
+      5. Review agent timeout settings
+  conditions:
+    - display_name: "Agent failures > 10%"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/agent_failures_total/counter"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_RATE"
+            group_by_fields: ["metric.label.agent_name"]
+        comparison: "COMPARISON_GT"
+        threshold_value: 0.10
+        duration: "300s"
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+- name: "Agent Response Time Degradation"
+  display_name: "Agent Response Time Above 30 Seconds"
+  documentation:
+    content: |
+      Agent response times have exceeded 30 seconds.
+      This may cause timeouts and fallback strategy activation.
+      
+      Investigation steps:
+      1. Check which agent is slow from metrics
+      2. Review Vertex AI API latency
+      3. Check for resource constraints
+      4. Review agent workload
+  conditions:
+    - display_name: "Agent response > 30s"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/agent_response_duration_seconds/histogram"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_DELTA"
+            cross_series_reducer: "REDUCE_PERCENTILE_95"
+            group_by_fields: ["metric.label.agent_name"]
+        comparison: "COMPARISON_GT"
+        threshold_value: 30.0
+        duration: "300s"
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+- name: "High Fallback Usage"
+  display_name: "Agent Fallback Rate Above 20%"
+  documentation:
+    content: |
+      Fallback strategies are being used for more than 20% of agent operations.
+      This indicates persistent agent issues affecting campaign quality.
+      
+      Investigation steps:
+      1. Identify which agents are using fallbacks
+      2. Review agent failure logs
+      3. Check if this is a temporary spike or sustained issue
+      4. Consider scaling resources or adjusting timeouts
+  conditions:
+    - display_name: "Fallback rate > 20%"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/agent_fallbacks_total/counter"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_RATE"
+            group_by_fields: ["metric.label.agent_name"]
+        comparison: "COMPARISON_GT"
+        threshold_value: 0.20
+        duration: "600s"  # 10 minutes
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+# ============================================================================
+# Bid Execution Alerts
+# ============================================================================
+
+- name: "Bid Execution Latency"
+  display_name: "Bid Execution Above 100ms"
+  documentation:
+    content: |
+      Bid execution latency has exceeded 100ms threshold.
+      This may cause bid rejections and reduced campaign performance.
+      
+      Investigation steps:
+      1. Check Firestore query performance
+      2. Review budget check latency
+      3. Check for resource constraints
+      4. Review bid execution logs
+  conditions:
+    - display_name: "Bid latency > 100ms"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/bid_execution_duration_milliseconds/histogram"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_DELTA"
+            cross_series_reducer: "REDUCE_PERCENTILE_95"
+        comparison: "COMPARISON_GT"
+        threshold_value: 100.0
+        duration: "300s"
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+- name: "Low Bid Win Rate"
+  display_name: "Bid Win Rate Below 15%"
+  documentation:
+    content: |
+      Bid win rate has fallen below 15% for one or more campaigns.
+      This may indicate bidding strategy issues or budget constraints.
+      
+      Investigation steps:
+      1. Review campaign bid prices
+      2. Check remaining budget
+      3. Review competition levels
+      4. Consider bid strategy adjustments
+  conditions:
+    - display_name: "Win rate < 15%"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/bid_win_rate/gauge"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "300s"
+            per_series_aligner: "ALIGN_MEAN"
+            group_by_fields: ["metric.label.campaign_id"]
+        comparison: "COMPARISON_LT"
+        threshold_value: 0.15
+        duration: "900s"  # 15 minutes
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+# ============================================================================
+# Campaign Performance Alerts
+# ============================================================================
+
+- name: "Low Campaign ROAS"
+  display_name: "Campaign ROAS Below 0.5"
+  documentation:
+    content: |
+      One or more campaigns have ROAS below 0.5, indicating poor performance.
+      Automatic optimization should be triggered, but manual review may be needed.
+      
+      Investigation steps:
+      1. Review campaign creative variants
+      2. Check audience targeting
+      3. Review bid strategy
+      4. Consider pausing underperforming campaigns
+  conditions:
+    - display_name: "ROAS < 0.5"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/campaign_roas/gauge"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "300s"
+            per_series_aligner: "ALIGN_MEAN"
+            group_by_fields: ["metric.label.campaign_id"]
+        comparison: "COMPARISON_LT"
+        threshold_value: 0.5
+        duration: "1800s"  # 30 minutes
+  notification_channels: []
+  alert_strategy:
+    auto_close: "3600s"  # 1 hour
+
+# ============================================================================
+# System Resource Alerts
+# ============================================================================
+
+- name: "High Firestore Error Rate"
+  display_name: "Firestore Error Rate Above 5%"
+  documentation:
+    content: |
+      Firestore operations are failing at a rate above 5%.
+      This will impact all platform functionality.
+      
+      Investigation steps:
+      1. Check Firestore service status
+      2. Review quota limits
+      3. Check for permission issues
+      4. Review error logs for specific error types
+  conditions:
+    - display_name: "Firestore errors > 5%"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/firestore_errors_total/counter"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_RATE"
+        comparison: "COMPARISON_GT"
+        threshold_value: 0.05
+        duration: "300s"
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+- name: "High Vertex AI Error Rate"
+  display_name: "Vertex AI Error Rate Above 5%"
+  documentation:
+    content: |
+      Vertex AI API calls are failing at a rate above 5%.
+      This will cause agent failures and fallback strategy usage.
+      
+      Investigation steps:
+      1. Check Vertex AI service status
+      2. Review API quota limits
+      3. Check for authentication issues
+      4. Review error types in logs
+  conditions:
+    - display_name: "Vertex AI errors > 5%"
+      condition_threshold:
+        filter: |
+          metric.type="prometheus.googleapis.com/vertex_ai_errors_total/counter"
+          AND resource.type="prometheus_target"
+        aggregations:
+          - alignment_period: "60s"
+            per_series_aligner: "ALIGN_RATE"
+        comparison: "COMPARISON_GT"
+        threshold_value: 0.05
+        duration: "300s"
+  notification_channels: []
+  alert_strategy:
+    auto_close: "1800s"
+
+# ============================================================================
+# Deployment Instructions
+# ============================================================================
+#
+# To deploy these alerts to Cloud Monitoring:
+#
+# 1. Install gcloud CLI and authenticate:
+#    gcloud auth login
+#    gcloud config set project YOUR_PROJECT_ID
+#
+# 2. Create notification channels (email, Slack, PagerDuty, etc.):
+#    gcloud alpha monitoring channels create \
+#      --display-name="Team Email" \
+#      --type=email \
+#      --channel-labels=email_address=team@example.com
+#
+# 3. Get notification channel IDs:
+#    gcloud alpha monitoring channels list
+#
+# 4. Update notification_channels in this file with channel IDs
+#
+# 5. Deploy alerts using gcloud or Terraform
+#
+# For more information:
+# https://cloud.google.com/monitoring/alerts

@@ -1,0 +1,62 @@
+# Google Agent Development Kit Configuration
+
+agents:
+  campaign_orchestrator:
+    name: "campaign_orchestrator"
+    type: "orchestrator"
+    description: "Coordinates campaign creation and optimization across specialist agents"
+    timeout_seconds: 30
+    max_retries: 3
+    
+  creative_generator:
+    name: "creative_generator"
+    type: "specialist"
+    description: "Generates ad copy variations and creative content"
+    timeout_seconds: 15
+    max_retries: 2
+    llm_model: "gemini-pro"
+    
+  audience_targeting:
+    name: "audience_targeting"
+    type: "specialist"
+    description: "Identifies and prioritizes audience segments"
+    timeout_seconds: 10
+    max_retries: 2
+    llm_model: "gemini-pro"
+    
+  budget_optimizer:
+    name: "budget_optimizer"
+    type: "specialist"
+    description: "Allocates budget and calculates optimal bids"
+    timeout_seconds: 5
+    max_retries: 2
+    
+  performance_analyzer:
+    name: "performance_analyzer"
+    type: "monitor"
+    description: "Monitors campaign performance and triggers optimizations"
+    check_interval_minutes: 15
+    
+  bid_execution:
+    name: "bid_execution"
+    type: "realtime"
+    description: "Executes real-time programmatic bidding"
+    timeout_milliseconds: 100
+    max_concurrent_bids: 1000
+
+communication:
+  protocol: "message_passing"
+  message_queue: "pubsub"
+  retry_strategy: "exponential_backoff"
+  max_message_size_kb: 256
+
+state_management:
+  backend: "firestore"
+  persistence: true
+  cache_ttl_seconds: 300
+
+logging:
+  level: "INFO"
+  format: "json"
+  include_agent_context: true
+  include_message_trace: true

@@ -1,0 +1,106 @@
+# Cloud Build configuration for Adaptive Ad Intelligence Platform
+# This file enables automated deployment using Google Cloud Build
+# Triggered on commits to main branch via Cloud Build triggers
+
+steps:
+  # Step 1: Run tests
+  - name: 'python:3.11'
+    id: 'run-tests'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-cov
+        pytest tests/ -v --cov=src --cov-report=term-missing
+    env:
+      - 'ENVIRONMENT=test'
+      - 'GOOGLE_CLOUD_PROJECT=test-project'
+
+  # Step 2: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '--tag=gcr.io/$PROJECT_ID/adaptive-ad-intelligence:$COMMIT_SHA'
+      - '--tag=gcr.io/$PROJECT_ID/adaptive-ad-intelligence:latest'
+      - '--build-arg=BUILD_DATE=$BUILD_ID'
+      - '--build-arg=VCS_REF=$COMMIT_SHA'
+      - '.'
+
+  # Step 3: Push Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/adaptive-ad-intelligence:$COMMIT_SHA'
+
+  # Step 4: Push latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-latest'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/adaptive-ad-intelligence:latest'
+
+  # Step 5: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'adaptive-ad-intelligence'
+      - '--image=gcr.io/$PROJECT_ID/adaptive-ad-intelligence:$COMMIT_SHA'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--min-instances=1'
+      - '--max-instances=100'
+      - '--memory=4Gi'
+      - '--cpu=2'
+      - '--timeout=300'
+      - '--concurrency=80'
+      - '--service-account=adaptive-ad-intelligence@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--set-env-vars=ENVIRONMENT=production,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_REGION=us-central1,LOG_LEVEL=INFO'
+      - '--set-secrets=VERTEX_AI_API_KEY=vertex-ai-api-key:latest,FIRESTORE_CREDENTIALS=firestore-credentials:latest,API_KEYS=api-keys:latest'
+      - '--labels=deployed-by=cloud-build,commit-sha=$COMMIT_SHA'
+
+  # Step 6: Verify deployment
+  - name: 'gcr.io/cloud-builders/curl'
+    id: 'verify-deployment'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        SERVICE_URL=$(gcloud run services describe adaptive-ad-intelligence \
+          --region us-central1 \
+          --format 'value(status.url)')
+        echo "Service URL: $SERVICE_URL"
+        sleep 10
+        curl -f $SERVICE_URL/api/health || exit 1
+        echo "Health check passed!"
+
+# Build configuration
+options:
+  # Use high-performance machine type for faster builds
+  machineType: 'N1_HIGHCPU_8'
+  # Enable logging
+  logging: CLOUD_LOGGING_ONLY
+  # Set timeout for entire build
+  timeout: '1200s'
+
+# Images to be pushed to Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/adaptive-ad-intelligence:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/adaptive-ad-intelligence:latest'
+
+# Substitutions for variables
+substitutions:
+  _REGION: 'us-central1'
+  _SERVICE_NAME: 'adaptive-ad-intelligence'
+
+# Tags for organizing builds
+tags:
+  - 'adaptive-ad-intelligence'
+  - 'cloud-run'
+  - 'production'
